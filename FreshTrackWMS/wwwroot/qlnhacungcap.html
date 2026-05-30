@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+  <title>FreshTrack WMS - Quản lý Nhà cung cấp</title>
+  <!-- Bootstrap & FontAwesome -->
+  <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css" rel="stylesheet">
+  <!-- Tái sử dụng file CSS -->
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+<!-- Sidebar -->
+<div class="sidebar" id="sidebar">
+  <div class="logo"><i class="fas fa-warehouse"></i> FreshTrack</div>
+  <nav class="nav flex-column">
+    <a href="index.html" class="nav-link"><i class="fas fa-tachometer-alt"></i> Tổng quan</a>
+    <a href="qlthucpham.html" class="nav-link"><i class="fas fa-boxes"></i> Thực phẩm</a>
+    <!-- Đổi class active xuống mục Nhà cung cấp -->
+    <a href="qlnhacungcap.html" class="nav-link active"><i class="fas fa-building"></i> Nhà cung cấp</a>
+    <a href="nhapkho.html" class="nav-link"><i class="fas fa-sign-in-alt"></i> Nhập kho</a>
+    <a href="xuatkho.html" class="nav-link"><i class="fas fa-sign-out-alt"></i> Xuất kho</a>
+    <a href="tonkho.html" class="nav-link"><i class="fas fa-layer-group"></i> Tồn kho</a>
+    <a href="huyhang.html" class="nav-link"><i class="fas fa-trash-alt"></i> Hủy hàng</a>
+    <a href="kiemke.html" class="nav-link"><i class="fas fa-check-square"></i> Kiểm kê</a>
+    <a href="baocao.html" class="nav-link"><i class="fas fa-chart-bar"></i> Báo cáo</a>
+  </nav>
+</div>
+
+<div class="main-wrapper">
+  <!-- Topbar -->
+  <div class="topbar">
+    <button class="btn btn-light d-md-none" id="sidebarToggle">
+      <i class="fas fa-bars"></i>
+    </button>
+    <div class="d-none d-md-block fw-bold text-secondary">
+      Hệ thống quản lý kho FreshTrack
+    </div>
+    
+    <div class="dropdown">
+      <button class="btn btn-light dropdown-toggle border-0" type="button" data-bs-toggle="dropdown">
+        <i class="fas fa-user-circle text-primary fs-5 align-middle me-1"></i>
+        <span class="align-middle">Quản trị viên</span>
+      </button>
+      <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0">
+        <li><a class="dropdown-item" href="#"><i class="fas fa-cog me-2"></i>Cài đặt</a></li>
+        <li><hr class="dropdown-divider"></li>
+        <li><a class="dropdown-item text-danger" href="#"><i class="fas fa-sign-out-alt me-2"></i>Đăng xuất</a></li>
+      </ul>
+    </div>
+  </div>
+
+  <!-- Content -->
+  <div class="content-padding">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+      <h4 class="mb-0">Danh sách Nhà cung cấp</h4>
+      <!-- Nút mở form Thêm mới -->
+      <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addSupplierModal">
+        <i class="fas fa-plus me-2"></i>Thêm nhà cung cấp
+      </button>
+    </div>
+
+    <!-- Thanh Tìm kiếm -->
+    <div class="card p-3 border-0 shadow-sm mb-4">
+      <div class="row g-2">
+        <div class="col-md-10">
+          <div class="input-group">
+            <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+            <input type="text" class="form-control border-start-0 ps-0" placeholder="Tìm kiếm theo tên, số điện thoại hoặc địa chỉ...">
+          </div>
+        </div>
+        <div class="col-md-2">
+          <button class="btn btn-secondary w-100"><i class="fas fa-search me-2"></i>Tìm</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bảng Dữ liệu -->
+    <div class="card p-0 border-0 shadow-sm">
+      <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+          <thead class="table-light">
+            <tr>
+              <th>Mã NCC</th>
+              <th>Tên nhà cung cấp</th>
+              <th>Liên hệ</th>
+              <th>Địa chỉ</th>
+              <th class="text-center">Thao tác</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="fw-medium">NCC001</td>
+              <td class="fw-bold text-dark">Công ty CP Nông sản Đà Lạt</td>
+              <td>
+                <div><i class="fas fa-phone-alt text-muted me-2" style="width: 15px;"></i> 0901 234 567</div>
+                <div><i class="fas fa-envelope text-muted me-2" style="width: 15px;"></i> contact@dalatfarm.vn</div>
+              </td>
+              <td class="text-wrap" style="max-width: 250px;">123 Nguyễn Văn Cừ, Phường 1, TP Đà Lạt, Lâm Đồng</td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-light text-primary me-1" title="Sửa"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-light text-danger" title="Xóa"><i class="fas fa-trash-alt"></i></button>
+              </td>
+            </tr>
+            <tr>
+              <td class="fw-medium">NCC002</td>
+              <td class="fw-bold text-dark">Vissan - Chi nhánh miền Nam</td>
+              <td>
+                <div><i class="fas fa-phone-alt text-muted me-2" style="width: 15px;"></i> 028 3812 3456</div>
+                <div><i class="fas fa-envelope text-muted me-2" style="width: 15px;"></i> sales@vissan.com.vn</div>
+              </td>
+              <td class="text-wrap" style="max-width: 250px;">420 Nơ Trang Long, Phường 13, Bình Thạnh, TP.HCM</td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-light text-primary me-1" title="Sửa"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-light text-danger" title="Xóa"><i class="fas fa-trash-alt"></i></button>
+              </td>
+            </tr>
+            <tr>
+              <td class="fw-medium">NCC003</td>
+              <td class="fw-bold text-dark">Hải sản Hoàng Gia</td>
+              <td>
+                <div><i class="fas fa-phone-alt text-muted me-2" style="width: 15px;"></i> 0909 999 888</div>
+                <div><i class="fas fa-envelope text-muted me-2" style="width: 15px;"></i> info@haisanhoanggia.com</div>
+              </td>
+              <td class="text-wrap" style="max-width: 250px;">10A Trần Hưng Đạo, Quận 1, TP.HCM</td>
+              <td class="text-center">
+                <button class="btn btn-sm btn-light text-primary me-1" title="Sửa"><i class="fas fa-edit"></i></button>
+                <button class="btn btn-sm btn-light text-danger" title="Xóa"><i class="fas fa-trash-alt"></i></button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      <!-- Phân trang -->
+      <div class="card-footer bg-white py-3">
+        <ul class="pagination pagination-sm justify-content-end mb-0">
+          <li class="page-item disabled"><a class="page-link" href="#">Trước</a></li>
+          <li class="page-item active"><a class="page-link" href="#">1</a></li>
+          <li class="page-item"><a class="page-link" href="#">2</a></li>
+          <li class="page-item"><a class="page-link" href="#">Tiếp</a></li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Thêm/Sửa Nhà Cung Cấp -->
+<div class="modal fade" id="addSupplierModal" tabindex="-1" aria-labelledby="addSupplierModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title" id="addSupplierModalLabel">Cập nhật thông tin Nhà cung cấp</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <form>
+          <div class="row g-3">
+            <div class="col-md-4">
+              <label class="form-label fw-medium">Mã nhà cung cấp <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" placeholder="Ví dụ: NCC004">
+            </div>
+            <div class="col-md-8">
+              <label class="form-label fw-medium">Tên nhà cung cấp <span class="text-danger">*</span></label>
+              <input type="text" class="form-control" placeholder="Nhập tên công ty hoặc cá nhân">
+            </div>
+            
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Số điện thoại <span class="text-danger">*</span></label>
+              <input type="tel" class="form-control" placeholder="Nhập số điện thoại liên hệ">
+            </div>
+            <div class="col-md-6">
+              <label class="form-label fw-medium">Email</label>
+              <input type="email" class="form-control" placeholder="Nhập địa chỉ email">
+            </div>
+
+            <div class="col-12">
+              <label class="form-label fw-medium">Địa chỉ <span class="text-danger">*</span></label>
+              <textarea class="form-control" rows="3" placeholder="Nhập địa chỉ chi tiết"></textarea>
+            </div>
+          </div>
+        </form>
+      </div>
+      <div class="modal-footer">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+        <button type="button" class="btn btn-primary">Lưu thông tin</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<!-- Tái sử dụng file JS -->
+<script src="script.js"></script>
+</body>
+</html>
