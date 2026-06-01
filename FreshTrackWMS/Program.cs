@@ -1,4 +1,4 @@
-using FreshTrackWMS.Data;
+﻿using FreshTrackWMS.Data;
 using Microsoft.EntityFrameworkCore;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -7,6 +7,10 @@ var builder = WebApplication.CreateBuilder(args);
 builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<FreshTrackWmsContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("FreshTrackWMS")));
+
+
+// Sửa lại dòng này trong Program.cs của bạn
+// Hoặc viết theo cách này cũng được
 
 var app = builder.Build();
 

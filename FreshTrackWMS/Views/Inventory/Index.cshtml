@@ -1,0 +1,270 @@
+﻿@model FreshTrackWMS.Models.InventoryPageViewModel
+@{
+    ViewData["Title"] = "Tra cứu Tồn kho";
+}
+
+<style>
+    /* Nhấn mạnh các dòng có cảnh báo */
+    .row-warning {
+        background-color: rgba(255, 193, 7, 0.05);
+        border-left: 4px solid #ffc107;
+    }
+
+    .row-danger {
+        background-color: rgba(220, 53, 69, 0.05);
+        border-left: 4px solid #dc3545;
+    }
+
+    .table-batch th {
+        font-size: 0.85rem;
+        text-transform: uppercase;
+        color: #666;
+        background: #f8f9fa;
+    }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h4 class="mb-0">Tra cứu Tồn kho</h4>
+    <div>
+        <button class="btn btn-outline-success me-2"><i class="fas fa-file-excel me-2"></i>Xuất Excel</button>
+    </div>
+</div>
+
+<div class="card p-3 border-0 shadow-sm mb-4">
+    <form method="get" asp-action="Index">
+        <div class="row g-2">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" name="searchTerm" class="form-control border-start-0 ps-0"
+                           placeholder="Tìm tên hoặc mã thực phẩm..." value="@Model.SearchTerm">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <select name="warningFilter" class="form-select border-warning">
+                    <option value="">-- Lọc theo cảnh báo --</option>
+                    <option value="2" selected="@(Model.WarningFilter == 2)">Sắp hết hạn sử dụng</option>
+                    <option value="3" selected="@(Model.WarningFilter == 3)">Sắp hết hàng (Dưới mức tồn tối thiểu)</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <select name="categoryFilter" class="form-select">
+                    <option value="">Danh mục</option>
+                    <option value="Rau củ" selected="@(Model.CategoryFilter == "Rau củ")">Rau củ</option>
+                    <option value="Thịt" selected="@(Model.CategoryFilter == "Thịt")">Thịt</option>
+                    <option value="Đồ khô" selected="@(Model.CategoryFilter == "Đồ khô")">Đồ khô</option>
+                    <option value="Hải sản" selected="@(Model.CategoryFilter == "Hải sản")">Hải sản</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button type="submit" class="btn btn-secondary w-100"><i class="fas fa-filter me-2"></i>Lọc dữ liệu</button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div class="card p-0 border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã TP</th>
+                    <th>Tên thực phẩm</th>
+                    <th>Danh mục</th>
+                    <th class="text-end">Tổng tồn kho</th>
+                    <th>ĐVT</th>
+                    <th>Tình trạng</th>
+                    <th class="text-center">Chi tiết</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model.Items != null && Model.Items.Any())
+                {
+                    foreach (var item in Model.Items)
+                    {
+                        // Xác định class CSS cho từng dòng dựa vào StatusType
+                        string rowClass = item.StatusType == 1 ? "row-warning" : (item.StatusType == 2 ? "row-danger" : "");
+                        string stockClass = item.StatusType == 2 ? "text-danger" : "text-dark";
+
+                        // Chuẩn bị chuỗi dữ liệu JSON của danh sách lô hàng để nhúng vào nút bấm (Đã sửa lỗi cú pháp)
+                        var jsonBatches = System.Text.Json.JsonSerializer.Serialize(item.Batches);
+
+                        <tr class="@rowClass">
+                            <td class="fw-medium">@item.ItemCode</td>
+                            <td class="fw-bold">@item.ItemName</td>
+                            <td>@item.Category</td>
+                            <td class="text-end fw-bold fs-5 @stockClass">@item.TotalStock</td>
+                            <td>@item.Unit</td>
+                            <td>
+                                @if (item.StatusType == 1)
+                                {
+                                    <span class="badge bg-warning text-dark"><i class="fas fa-exclamation-triangle me-1"></i> Có lô sắp hết hạn</span>
+                                }
+                                else if (item.StatusType == 2)
+                                {
+                                    <span class="badge bg-danger"><i class="fas fa-arrow-down me-1"></i> Sắp hết hàng</span>
+                                }
+                                else
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25"><i class="fas fa-check-circle me-1"></i> Bình thường</span>
+                                }
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-info text-white btn-view-batch"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#batchDetailModal"
+                                        data-itemcode="@item.ItemCode"
+                                        data-itemname="@item.ItemName"
+                                        data-totalstock="@item.TotalStock"
+                                        data-unit="@item.Unit"
+                                        data-batches="@jsonBatches"
+                                        title="Xem chi tiết các lô">
+                                    <i class="fas fa-layer-group me-1"></i> Lô hàng
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center py-4 text-muted">Không tìm thấy thực phẩm nào phù hợp.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+
+    <div class="card-footer bg-white py-3">
+        <div class="d-flex justify-content-between align-items-center">
+            <small class="text-muted">Hiển thị @Model.Items.Count / @Model.TotalRecords thực phẩm</small>
+
+            @if (Model.TotalPages > 1)
+            {
+                <ul class="pagination pagination-sm mb-0">
+                    <li class="page-item @(Model.CurrentPage == 1 ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-page="@(Model.CurrentPage - 1)"
+                           asp-route-searchTerm="@Model.SearchTerm"
+                           asp-route-warningFilter="@Model.WarningFilter"
+                           asp-route-categoryFilter="@Model.CategoryFilter">Trước</a>
+                    </li>
+
+                    @for (int i = 1; i <= Model.TotalPages; i++)
+                    {
+                        <li class="page-item @(Model.CurrentPage == i ? "active" : "")">
+                            <a class="page-link" asp-action="Index"
+                               asp-route-page="@i"
+                               asp-route-searchTerm="@Model.SearchTerm"
+                               asp-route-warningFilter="@Model.WarningFilter"
+                               asp-route-categoryFilter="@Model.CategoryFilter">@i</a>
+                        </li>
+                    }
+
+                    <li class="page-item @(Model.CurrentPage == Model.TotalPages ? "disabled" : "")">
+                        <a class="page-link" asp-action="Index"
+                           asp-route-page="@(Model.CurrentPage + 1)"
+                           asp-route-searchTerm="@Model.SearchTerm"
+                           asp-route-warningFilter="@Model.WarningFilter"
+                           asp-route-categoryFilter="@Model.CategoryFilter">Tiếp</a>
+                    </li>
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="batchDetailModal" tabindex="-1" aria-labelledby="batchDetailModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title fw-bold" id="batchDetailModalLabel">
+                    <i class="fas fa-layer-group text-primary me-2"></i>Chi tiết lô hàng: <span id="modalTitleInfo"></span>
+                </h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-4">
+
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <span class="fw-medium text-muted">Tổng tồn kho hiện tại: <strong class="text-dark fs-5" id="modalTotalStock"></strong></span>
+                    <button class="btn btn-sm btn-warning"><i class="fas fa-truck-loading me-1"></i>Tạo phiếu xuất kho</button>
+                </div>
+
+                <div class="table-responsive border rounded">
+                    <table class="table table-batch mb-0 align-middle">
+                        <thead>
+                            <tr>
+                                <th>Mã Lô (Batch ID)</th>
+                                <th>Ngày nhập</th>
+                                <th>Mã phiếu nhập</th>
+                                <th class="text-end">Tồn kho lô</th>
+                                <th class="text-center">Hạn sử dụng</th>
+                                <th class="text-center">Trạng thái Lô</th>
+                            </tr>
+                        </thead>
+                        <tbody id="modalBatchTableBody">
+                        </tbody>
+                    </table>
+                </div>
+
+                <div class="alert alert-info mt-3 mb-0 text-sm py-2">
+                    <i class="fas fa-info-circle me-1"></i> Mẹo: Phát hiện lệch tồn kho thực tế? Hãy chuyển sang mục <strong>Kiểm kê</strong> để tạo phiếu điều chỉnh.
+                </div>
+
+            </div>
+            <div class="modal-footer border-top-0">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Kịch bản xử lý sự kiện click lấy JSON từ nút bấm đẩy vào Modal Bootstrap
+        document.querySelectorAll('.btn-view-batch').forEach(button => {
+            button.addEventListener('click', function() {
+                const itemCode = this.getAttribute('data-itemcode');
+                const itemName = this.getAttribute('data-itemname');
+                const totalStock = this.getAttribute('data-totalstock');
+                const unit = this.getAttribute('data-unit');
+                const batches = JSON.parse(this.getAttribute('data-batches') || '[]');
+
+                // Cập nhật thông tin tiêu đề Modal
+                document.getElementById('modalTitleInfo').innerText = `${itemCode} - ${itemName}`;
+                document.getElementById('modalTotalStock').innerText = `${totalStock} ${unit}`;
+
+                const tableBody = document.getElementById('modalBatchTableBody');
+                tableBody.innerHTML = '';
+
+                if (batches.length === 0) {
+                    tableBody.innerHTML = `<tr><td colspan="6" class="text-center py-3 text-muted">Sản phẩm này chưa ghi nhận thông tin chia lô.</td></tr>`;
+                    return;
+                }
+
+                // Duyệt danh sách lô hàng được gửi kèm từ Model C#
+                batches.forEach(batch => {
+                    const impDate = new Date(batch.ImportDate).toLocaleDateString('vi-VN');
+                    const expDate = new Date(batch.ExpiryDate).toLocaleDateString('vi-VN');
+
+                    const isFefo = batch.Status.includes("FEFO") || batch.Status.includes("hết hạn");
+                    const trClass = isFefo ? 'class="bg-warning bg-opacity-10"' : '';
+                    const expClass = isFefo ? 'class="text-center text-danger fw-bold"' : 'class="text-center"';
+                    const badgeClass = isFefo ? 'badge bg-danger' : 'badge bg-success bg-opacity-10 text-success border border-success border-opacity-25';
+
+                    const row = `
+                        <tr ${trClass}>
+                            <td class="fw-medium">${batch.BatchId}</td>
+                            <td>${impDate}</td>
+                            <td><a href="#" class="text-decoration-none">${batch.ImportCode}</a></td>
+                            <td class="text-end fw-bold">${batch.BatchStock} ${unit}</td>
+                            <td ${expClass}>${expDate}</td>
+                            <td class="text-center"><span class="${badgeClass}">${batch.Status}</span></td>
+                        </tr>
+                    `;
+                    tableBody.innerHTML += row;
+                });
+            });
+        });
+    </script>
+}
