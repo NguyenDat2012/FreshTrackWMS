@@ -17,9 +17,9 @@
         <div class="logo"><i class="fas fa-warehouse"></i> FreshTrack</div>
         <nav class="nav flex-column">
             <a href="/" class="nav-link active"><i class="fas fa-tachometer-alt"></i> Tổng quan</a>
-            <a href="#" class="nav-link"><i class="fas fa-boxes"></i> Thực phẩm</a>
+            <a asp-controller="Food" asp-action="Index" class="nav-link"><i class="fas fa-boxes"></i>Thực phẩm</a>
             <a asp-controller="Supplier" asp-action="Index" class="nav-link"><i class="fas fa-building"></i> Nhà cung cấp</a>
-            <a href="#" class="nav-link"><i class="fas fa-sign-in-alt"></i> Nhập kho</a>
+            <a asp-controller="ImportTicket" asp-action="Index" class="nav-link"><i class="fas fa-sign-in-alt"></i> Nhập kho</a>
             <a href="#" class="nav-link"><i class="fas fa-sign-out-alt"></i> Xuất kho</a>
             <a asp-controller="Inventory" asp-action="Index" class="nav-link"><i class="fas fa-layer-group"></i> Tồn kho</a>
             <a href="#" class="nav-link"><i class="fas fa-trash-alt"></i> Hủy hàng</a>

@@ -1,0 +1,270 @@
+﻿@model IEnumerable<FreshTrackWMS.Data.ThucPham>
+@{
+    ViewData["Title"] = "Quản lý Thực phẩm";
+}
+
+<div class="content-padding">
+
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @TempData["SuccessMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @TempData["ErrorMessage"]
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    }
+
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h4 class="mb-0">Danh sách thực phẩm</h4>
+        <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addFoodModal">
+            <i class="fas fa-plus me-2"></i>Thêm thực phẩm
+        </button>
+    </div>
+
+    <div class="card p-3 border-0 shadow-sm mb-4">
+        <form method="get" asp-action="Index" asp-controller="Food">
+            <div class="row g-2">
+                <div class="col-md-5">
+                    <div class="input-group">
+                        <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                        <input type="text" name="searchString" value="@ViewBag.CurrentSearch" class="form-control border-start-0 ps-0" placeholder="Tìm theo tên thực phẩm...">
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <select name="danhMuc" class="form-select" onchange="this.form.submit()">
+                        <option value="">Tất cả danh mục</option>
+                        <option value="Rau củ" selected="@(ViewBag.CurrentDanhMuc == "Rau củ")">Rau củ</option>
+                        <option value="Thịt" selected="@(ViewBag.CurrentDanhMuc == "Thịt")">Thịt</option>
+                        <option value="Hải sản" selected="@(ViewBag.CurrentDanhMuc == "Hải sản")">Hải sản</option>
+                        <option value="Đồ khô" selected="@(ViewBag.CurrentDanhMuc == "Đồ khô")">Đồ khô</option>
+                        <option value="Đông lạnh" selected="@(ViewBag.CurrentDanhMuc == "Đông lạnh")">Đông lạnh</option>
+                    </select>
+                </div>
+                <div class="col-md-2">
+                    <button type="submit" class="btn btn-secondary w-100"><i class="fas fa-filter me-2"></i>Lọc</button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <div class="card p-0 border-0 shadow-sm">
+        <div class="table-responsive">
+            <table class="table table-hover align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã TP</th>
+                        <th>Tên thực phẩm</th>
+                        <th>Danh mục</th>
+                        <th>Đơn vị tính</th>
+                        <th>Bảo quản</th>
+                        <th>HSD (Ngày)</th>
+                        <th class="text-center">Thao tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.Any())
+                    {
+                        <tr><td colspan="7" class="text-center text-muted py-3">Không có dữ liệu.</td></tr>
+                    }
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-medium">TP@(item.MaThucPham.ToString("D3"))</td>
+                            <td>@item.TenThucPham</td>
+                            <td>
+                                @if (item.DanhMuc == "Rau củ")
+                                {
+                                    <span class="badge bg-success bg-opacity-10 text-success border border-success border-opacity-25">@item.DanhMuc</span>
+                                }
+                                else if (item.DanhMuc == "Thịt")
+                                {
+
+                                    <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">@item.DanhMuc</span>
+                                }
+                                else if (item.DanhMuc == "Hải sản")
+                                {
+
+                                    <span class="badge bg-info bg-opacity-10 text-info border border-info border-opacity-25">@item.DanhMuc</span>
+                                }
+                                else
+                                {
+
+                                    <span class="badge bg-secondary bg-opacity-10 text-secondary border border-secondary border-opacity-25">@item.DanhMuc</span>
+                                }
+                            </td>
+                            <td>@item.DonViTinh</td>
+                            <td>@item.PhuongThucBaoQuan</td>
+                            <td>@item.HanSuDungThamKhao</td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-light text-primary me-1 edit-btn"
+                                        title="Sửa"
+                                        data-bs-toggle="modal"
+                                        data-bs-target="#editFoodModal"
+                                        data-id="@item.MaThucPham"
+                                        data-name="@item.TenThucPham"
+                                        data-category="@item.DanhMuc"
+                                        data-unit="@item.DonViTinh"
+                                        data-preservation="@item.PhuongThucBaoQuan"
+                                        data-expiry="@item.HanSuDungThamKhao">
+                                    <i class="fas fa-edit"></i>
+                                </button>
+
+                                <form asp-action="Delete" asp-controller="Food" asp-route-id="@item.MaThucPham" method="post" class="d-inline" onsubmit="return confirm('Mày có chắc chắn muốn xóa?');">
+                                    <button type="submit" class="btn btn-sm btn-light text-danger" title="Xóa"><i class="fas fa-trash-alt"></i></button>
+                                </form>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+        <div class="card-footer bg-white py-3">
+            <ul class="pagination pagination-sm justify-content-end mb-0">
+                <li class="page-item disabled"><a class="page-link" href="#">Trước</a></li>
+                <li class="page-item active"><a class="page-link" href="#">1</a></li>
+                <li class="page-item"><a class="page-link" href="#">2</a></li>
+                <li class="page-item"><a class="page-link" href="#">Tiếp</a></li>
+            </ul>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="addFoodModal" tabindex="-1" aria-labelledby="addFoodModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-light">
+                <h5 class="modal-title" id="addFoodModalLabel">Thêm Thực Phẩm Mới</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Create" asp-controller="Food" method="post">
+                <div class="modal-body">
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Tên thực phẩm <span class="text-danger">*</span></label>
+                            <input type="text" name="TenThucPham" class="form-control" placeholder="Nhập tên thực phẩm" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Loại thực phẩm <span class="text-danger">*</span></label>
+                            <select name="DanhMuc" class="form-select" required>
+                                <option value="" selected disabled>Chọn danh mục</option>
+                                <option value="Rau củ">Rau củ</option>
+                                <option value="Thịt">Thịt</option>
+                                <option value="Hải sản">Hải sản</option>
+                                <option value="Đồ khô">Đồ khô</option>
+                                <option value="Đông lạnh">Đông lạnh</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Đơn vị tính <span class="text-danger">*</span></label>
+                            <select name="DonViTinh" class="form-select" required>
+                                <option value="" selected disabled>Chọn đơn vị</option>
+                                <option value="Kg">Kg</option>
+                                <option value="Gram">Gram</option>
+                                <option value="Thùng">Thùng</option>
+                                <option value="Hộp">Hộp</option>
+                                <option value="Gói">Gói</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Phương thức bảo quản</label>
+                            <select name="PhuongThucBaoQuan" class="form-select">
+                                <option value="Nhiệt độ phòng">Nhiệt độ phòng</option>
+                                <option value="Bảo quản lạnh">Bảo quản lạnh (0 - 4°C)</option>
+                                <option value="Đông lạnh">Đông lạnh (Dưới -18°C)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Hạn sử dụng tham khảo (Ngày)</label>
+                            <input type="number" name="HanSuDungThamKhao" class="form-control" placeholder="Nhập số ngày">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-primary">Lưu thông tin</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<div class="modal fade" id="editFoodModal" tabindex="-1" aria-labelledby="editFoodModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header bg-warning text-dark">
+                <h5 class="modal-title" id="editFoodModalLabel">Chỉnh Sửa Thực Phẩm</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <form asp-action="Edit" asp-controller="Food" method="post">
+                <div class="modal-body">
+                    <input type="hidden" name="MaThucPham" id="edit-id" />
+
+                    <div class="row g-3">
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Tên thực phẩm <span class="text-danger">*</span></label>
+                            <input type="text" name="TenThucPham" id="edit-name" class="form-control" required>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Loại thực phẩm <span class="text-danger">*</span></label>
+                            <select name="DanhMuc" id="edit-category" class="form-select" required>
+                                <option value="Rau củ">Rau củ</option>
+                                <option value="Thịt">Thịt</option>
+                                <option value="Hải sản">Hải sản</option>
+                                <option value="Đồ khô">Đồ khô</option>
+                                <option value="Đông lạnh">Đông lạnh</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Đơn vị tính <span class="text-danger">*</span></label>
+                            <select name="DonViTinh" id="edit-unit" class="form-select" required>
+                                <option value="Kg">Kg</option>
+                                <option value="Gram">Gram</option>
+                                <option value="Thùng">Thùng</option>
+                                <option value="Hộp">Hộp</option>
+                                <option value="Gói">Gói</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Phương thức bảo quản</label>
+                            <select name="PhuongThucBaoQuan" id="edit-preservation" class="form-select">
+                                <option value="Nhiệt độ phòng">Nhiệt độ phòng</option>
+                                <option value="Bảo quản lạnh">Bảo quản lạnh (0 - 4°C)</option>
+                                <option value="Đông lạnh">Đông lạnh (Dưới -18°C)</option>
+                            </select>
+                        </div>
+                        <div class="col-md-6">
+                            <label class="form-label fw-medium">Hạn sử dụng tham khảo (Ngày)</label>
+                            <input type="number" name="HanSuDungThamKhao" id="edit-expiry" class="form-control">
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy</button>
+                    <button type="submit" class="btn btn-warning">Cập nhật</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function () {
+        const editButtons = document.querySelectorAll('.edit-btn');
+        editButtons.forEach(button => {
+            button.addEventListener('click', function () {
+                document.getElementById('edit-id').value = this.getAttribute('data-id');
+                document.getElementById('edit-name').value = this.getAttribute('data-name');
+                document.getElementById('edit-category').value = this.getAttribute('data-category');
+                document.getElementById('edit-unit').value = this.getAttribute('data-unit');
+                document.getElementById('edit-preservation').value = this.getAttribute('data-preservation');
+                document.getElementById('edit-expiry').value = this.getAttribute('data-expiry');
+            });
+        });
+    });
+</script>
