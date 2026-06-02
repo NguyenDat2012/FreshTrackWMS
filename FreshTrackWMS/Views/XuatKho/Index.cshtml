@@ -1,0 +1,439 @@
+@model FreshTrackWMS.Models.XuatKhoIndexViewModel
+@using System.Text.Json
+
+@{
+    ViewData["Title"] = "Quản lý Xuất kho";
+    var tonKhoJson = JsonSerializer.Serialize(Model.TonKhoItems.Select(item => new
+    {
+        item.MaLo,
+        item.MaThucPham,
+        item.TenThucPham,
+        item.DonViTinh,
+        item.SoLuongTon,
+        HanSuDung = item.HanSuDung.ToString("dd/MM/yyyy"),
+        item.DisplayName,
+        item.LoDisplayName
+    }));
+}
+
+<style>
+    .xuat-kho-page .page-title {
+        font-weight: 700;
+        letter-spacing: 0;
+    }
+
+    .xuat-kho-page .toolbar-card,
+    .xuat-kho-page .history-card {
+        border: 0;
+        border-radius: 8px;
+        box-shadow: 0 2px 10px rgba(15, 23, 42, 0.08);
+    }
+
+    .xuat-kho-page .toolbar-card .form-control,
+    .xuat-kho-page .toolbar-card .btn {
+        min-height: 42px;
+    }
+
+    .xuat-kho-page .history-table thead th {
+        background: #f8fafc;
+        border-bottom: 1px solid #dee2e6;
+        color: #111827;
+        font-size: 0.9rem;
+        font-weight: 700;
+        padding: 0.9rem 1rem;
+        white-space: nowrap;
+    }
+
+    .xuat-kho-page .history-table tbody td {
+        color: #374151;
+        padding: 0.9rem 1rem;
+        vertical-align: middle;
+    }
+
+    .xuat-kho-modal .modal-content {
+        border: 0;
+        border-radius: 8px;
+        overflow: hidden;
+    }
+
+    .xuat-kho-modal .modal-header {
+        background: #ffe36c;
+        color: #000;
+        padding: 1rem 1.25rem;
+    }
+
+    .xuat-kho-modal .modal-body {
+        background: #fff;
+        padding: 1.25rem;
+    }
+
+    .xuat-kho-modal .section-title {
+        border-bottom: 1px solid #d1d5db;
+        color: #1f2937;
+        font-size: 1.05rem;
+        font-weight: 700;
+        margin-bottom: 1rem;
+        padding-bottom: 0.6rem;
+    }
+
+    .xuat-kho-modal .form-label {
+        color: #374151;
+        font-weight: 600;
+        margin-bottom: 0.35rem;
+    }
+
+    .xuat-kho-modal .form-control,
+    .xuat-kho-modal .form-select {
+        min-height: 40px;
+    }
+
+    .table-detail {
+        border: 1px solid #d1d5db;
+    }
+
+    .table-detail th {
+        background: #f1f5f9;
+        border-bottom: 1px solid #d1d5db;
+        color: #1f2937;
+        font-size: 0.85rem;
+        font-weight: 700;
+        padding: 0.75rem;
+        text-align: center;
+        vertical-align: middle;
+    }
+
+    .table-detail td {
+        border-top: 1px solid #e5e7eb;
+        padding: 0.5rem;
+        vertical-align: middle;
+    }
+
+    .add-food-modal .modal-dialog {
+        max-width: 560px;
+    }
+</style>
+
+<div class="xuat-kho-page">
+    <div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+        <h4 class="page-title mb-0">Lịch sử Xuất kho</h4>
+        <button class="btn btn-warning fw-semibold px-4" data-bs-toggle="modal" data-bs-target="#exportTicketModal">
+            <i class="fas fa-truck-loading me-2"></i>Tạo phiếu xuất
+        </button>
+    </div>
+
+    @if (TempData["SuccessMessage"] is string successMessage)
+    {
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            @successMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    }
+
+    @if (TempData["ErrorMessage"] is string errorMessage)
+    {
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            @errorMessage
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Đóng"></button>
+        </div>
+    }
+
+    <div class="toolbar-card card p-3 mb-4">
+        <div class="row g-2 align-items-center">
+            <div class="col-lg-5 col-md-6">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" class="form-control border-start-0 ps-0" placeholder="Tìm mã phiếu xuất...">
+                </div>
+            </div>
+            <div class="col-lg-3 col-md-3">
+                <input type="date" class="form-control" title="Từ ngày">
+            </div>
+            <div class="col-lg-2 col-md-3">
+                <button class="btn btn-secondary w-100 fw-semibold"><i class="fas fa-filter me-2"></i>Lọc</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="history-card card p-0">
+        <div class="table-responsive">
+            <table class="table table-hover history-table align-middle mb-0">
+                <thead>
+                    <tr>
+                        <th>Mã phiếu</th>
+                        <th>Ngày xuất</th>
+                        <th>Lý do xuất</th>
+                        <th class="text-end">Số đơn hàng</th>
+                        <th class="text-end">Tổng số lượng</th>
+                        <th>Người tạo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.PhieuXuats.Any())
+                    {
+                        foreach (var item in Model.PhieuXuats)
+                        {
+                            <tr>
+                                <td class="fw-semibold text-primary">@item.MaPhieu</td>
+                                <td>@item.NgayXuat.ToString("dd/MM/yyyy")</td>
+                                <td>@item.LyDoXuat</td>
+                                <td class="text-end">@item.SoDonHang</td>
+                                <td class="text-end">@item.TongSoLuong kg</td>
+                                <td>@item.NguoiTao</td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="6" class="text-center text-muted py-4">Không tìm thấy dữ liệu phù hợp</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<form asp-action="Create" method="post" id="exportTicketForm">
+    @Html.AntiForgeryToken()
+    <div class="modal fade xuat-kho-modal" id="exportTicketModal" tabindex="-1" aria-labelledby="exportTicketModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title fw-bold" id="exportTicketModalLabel">Tạo Phiếu Xuất Kho Mới</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Đóng"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="section-title">
+                        <i class="fas fa-info-circle me-2"></i>Thông tin chung
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Mã phiếu</label>
+                            <input type="text" class="form-control bg-light" value="PX-TỰ-ĐỘNG" disabled>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Ngày xuất</label>
+                            <input asp-for="NewPhieuXuat.NgayXuat" type="date" class="form-control" name="NgayXuat" required>
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="form-label">Lý do xuất / Nơi nhận</label>
+                            <input asp-for="NewPhieuXuat.LyDoXuat" class="form-control" name="LyDoXuat" placeholder="Ví dụ: Xuất bán cửa hàng tiện lợi BHX" required>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Số đơn hàng</label>
+                            <input asp-for="NewPhieuXuat.SoDonHang" type="number" class="form-control" name="SoDonHang" min="1" placeholder="Nhập số đơn hàng" required>
+                        </div>
+                        <div class="col-lg-3 col-md-6">
+                            <label class="form-label">Người tạo</label>
+                            <select asp-for="NewPhieuXuat.NguoiTao" asp-items="Model.NguoiTaoOptions" class="form-select" name="NguoiTao" required>
+                                <option value="">Chọn người tạo</option>
+                            </select>
+                        </div>
+                        <div class="col-lg-6">
+                            <label class="form-label">Ghi chú</label>
+                            <input asp-for="NewPhieuXuat.GhiChu" class="form-control" name="GhiChu" placeholder="Ghi chú nếu có">
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center section-title">
+                        <span><i class="fas fa-list me-2"></i>Chi tiết thực phẩm xuất</span>
+                        <button type="button" class="btn btn-light btn-sm border fw-semibold" id="openAddFoodButton">
+                            <i class="fas fa-plus-square me-2"></i>Thêm thực phẩm
+                        </button>
+                    </div>
+
+                    <div class="table-responsive">
+                        <table class="table table-detail mb-0">
+                            <thead>
+                                <tr>
+                                    <th>Tên sản phẩm</th>
+                                    <th>Lô hàng theo gợi ý FEFO</th>
+                                    <th>Tồn kho hiện tại</th>
+                                    <th style="width: 80px;">Thao tác</th>
+                                </tr>
+                            </thead>
+                            <tbody id="exportDetailsBody">
+                                <tr id="emptyDetailsRow">
+                                    <td colspan="4" class="text-center text-muted py-3">Chưa có thực phẩm xuất</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                        <i class="fas fa-times-circle me-2"></i>Hủy bỏ
+                    </button>
+                    <button type="submit" class="btn btn-success">
+                        <i class="fas fa-check-square me-2"></i>Xác nhận
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+</form>
+
+<div class="modal fade xuat-kho-modal add-food-modal" id="addFoodModal" tabindex="-1" aria-labelledby="addFoodModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header justify-content-center">
+                <h4 class="modal-title fw-bold" id="addFoodModalLabel">Thêm Thực Phẩm</h4>
+            </div>
+            <div class="modal-body">
+                <h6 class="text-center mb-3">Các thực phẩm còn trong kho hiện tại</h6>
+                <div class="row g-3">
+                    <div class="col-12">
+                        <label class="form-label">Tên sản phẩm</label>
+                        <select class="form-select" id="stockItemSelect">
+                            @foreach (var item in Model.TonKhoItems)
+                            {
+                                <option value="@item.MaLo">@item.DisplayName - Tồn @item.SoLuongTon @item.DonViTinh</option>
+                            }
+                        </select>
+                        <div class="text-danger small mt-1 d-none" id="stockItemError">Thêm không được</div>
+                    </div>
+                    <div class="col-6">
+                        <label class="form-label">Tồn kho hiện tại</label>
+                        <div class="input-group">
+                            <input type="number" class="form-control" id="stockCurrentQuantityInput" value="" disabled>
+                            <span class="input-group-text" id="stockCurrentUnit">KG</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-danger" data-bs-dismiss="modal">
+                    <i class="fas fa-times-circle me-2"></i>Hủy bỏ
+                </button>
+                <button type="button" class="btn btn-success" id="addSelectedFoodButton">
+                    <i class="fas fa-check-square me-2"></i>Thêm
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        const stockItems = @Html.Raw(tonKhoJson);
+        const selectedDetails = [];
+        const exportDetailsBody = document.getElementById('exportDetailsBody');
+        const emptyDetailsRow = document.getElementById('emptyDetailsRow');
+        const addFoodModalElement = document.getElementById('addFoodModal');
+        const addFoodModal = new bootstrap.Modal(addFoodModalElement);
+        const stockItemSelect = document.getElementById('stockItemSelect');
+        const stockCurrentQuantityInput = document.getElementById('stockCurrentQuantityInput');
+        const stockCurrentUnit = document.getElementById('stockCurrentUnit');
+        const stockItemError = document.getElementById('stockItemError');
+
+        document.getElementById('openAddFoodButton').addEventListener('click', function () {
+            clearAddFoodErrors();
+            updateCurrentStockDisplay();
+            addFoodModal.show();
+        });
+
+        stockItemSelect.addEventListener('change', updateCurrentStockDisplay);
+
+        document.getElementById('addSelectedFoodButton').addEventListener('click', function () {
+            clearAddFoodErrors();
+
+            const maLo = Number(stockItemSelect.value);
+            const stockItem = stockItems.find(item => item.MaLo === maLo);
+
+            if (!stockItem) {
+                showAddFoodError(stockItemError);
+                return;
+            }
+
+            const existingDetail = selectedDetails.find(detail => detail.MaLo === maLo);
+            if (existingDetail) {
+                addFoodModal.hide();
+                return;
+            }
+
+            selectedDetails.push({
+                MaLo: maLo,
+                SoLuong: stockItem.SoLuongTon
+            });
+
+            renderDetails();
+            addFoodModal.hide();
+        });
+
+        document.getElementById('exportTicketForm').addEventListener('submit', function (event) {
+            if (selectedDetails.length === 0) {
+                event.preventDefault();
+                addFoodModal.show();
+                showAddFoodError(stockItemError);
+            }
+        });
+
+        function clearAddFoodErrors() {
+            stockItemError.classList.add('d-none');
+            stockItemSelect.classList.remove('is-invalid');
+        }
+
+        function showAddFoodError(errorElement) {
+            errorElement.classList.remove('d-none');
+            stockItemSelect.classList.add('is-invalid');
+        }
+
+        function updateCurrentStockDisplay() {
+            const maLo = Number(stockItemSelect.value);
+            const stockItem = stockItems.find(item => item.MaLo === maLo);
+
+            stockCurrentQuantityInput.value = stockItem ? stockItem.SoLuongTon : '';
+            stockCurrentUnit.textContent = stockItem ? stockItem.DonViTinh : 'KG';
+        }
+
+        function renderDetails() {
+            exportDetailsBody.innerHTML = '';
+
+            if (selectedDetails.length === 0) {
+                exportDetailsBody.appendChild(emptyDetailsRow);
+                return;
+            }
+
+            selectedDetails.forEach(function (detail, index) {
+                const stockItem = stockItems.find(item => item.MaLo === detail.MaLo);
+                const row = document.createElement('tr');
+                row.innerHTML = `
+                    <td>
+                        <input type="hidden" name="Details[${index}].MaLo" value="${detail.MaLo}">
+                        <input type="hidden" name="Details[${index}].SoLuong" value="${detail.SoLuong}">
+                        <select class="form-select" disabled>
+                            <option>${stockItem.DisplayName}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <select class="form-select" disabled>
+                            <option>${stockItem.LoDisplayName}</option>
+                        </select>
+                    </td>
+                    <td>
+                        <div class="input-group">
+                            <input type="number" class="form-control text-end" value="${stockItem.SoLuongTon}" disabled>
+                            <span class="input-group-text">${stockItem.DonViTinh}</span>
+                        </div>
+                    </td>
+                    <td class="text-center">
+                        <button type="button" class="btn btn-sm btn-outline-danger remove-detail" data-index="${index}" title="Xóa">
+                            <i class="fas fa-trash-alt"></i>
+                        </button>
+                    </td>
+                `;
+
+                exportDetailsBody.appendChild(row);
+            });
+
+            document.querySelectorAll('.remove-detail').forEach(function (button) {
+                button.addEventListener('click', function () {
+                    selectedDetails.splice(Number(button.dataset.index), 1);
+                    renderDetails();
+                });
+            });
+        }
+    </script>
+}
