@@ -1,0 +1,242 @@
+﻿@model IEnumerable<FreshTrackWMS.Models.DestroyProductViewModel>
+
+<style>
+    .table-detail th { font-size: 0.85rem; text-transform: uppercase; color: #555; }
+    .table-detail td { vertical-align: middle; }
+    .table-detail .form-control, .table-detail .form-select { border-radius: 4px; padding: 0.375rem 0.5rem; font-size: 0.9rem; }
+</style>
+
+@if (TempData["Success"] != null)
+{
+    <div class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i>@TempData["Success"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+@if (TempData["Error"] != null)
+{
+    <div class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i>@TempData["Error"]
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+}
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h4 class="mb-0 text-danger"><i class="fas fa-trash-alt me-2"></i>Lịch sử Hủy hàng</h4>
+    <button class="btn btn-danger fw-medium" data-bs-toggle="modal" data-bs-target="#destroyTicketModal">
+        <i class="fas fa-plus-circle me-2"></i>Tạo phiếu hủy
+    </button>
+</div>
+
+<div class="card p-3 border-0 shadow-sm mb-4">
+    <div class="row g-2">
+        <div class="col-md-5">
+            <div class="input-group">
+                <span class="input-group-text bg-white"><i class="fas fa-search text-muted"></i></span>
+                <input type="text" class="form-control border-start-0 ps-0" placeholder="Tìm mã phiếu hủy...">
+            </div>
+        </div>
+        <div class="col-md-3">
+            <input type="date" class="form-control" title="Từ ngày">
+        </div>
+        <div class="col-md-2">
+            <select class="form-select">
+                <option value="">Lý do hủy</option>
+                <option value="Hết hạn sử dụng">Hết hạn sử dụng</option>
+                <option value="Hư hỏng/Mốc">Hư hỏng/Mốc</option>
+                <option value="Không đạt chất lượng">Không đạt chất lượng</option>
+            </select>
+        </div>
+        <div class="col-md-2">
+            <button class="btn btn-secondary w-100"><i class="fas fa-filter me-2"></i>Lọc</button>
+        </div>
+    </div>
+</div>
+
+<div class="card p-0 border-0 shadow-sm">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Mã phiếu</th>
+                    <th>Ngày hủy</th>
+                    <th>Người thực hiện</th>
+                    <th class="text-end">Số mặt hàng</th>
+                    <th class="text-end">Tổng số lượng</th>
+                    <th>Lý do chính</th>
+                    <th class="text-center">Chi tiết</th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (Model != null && Model.Any())
+                {
+                    @foreach (var item in Model)
+                    {
+                        <tr>
+                            <td class="fw-medium text-danger">@item.DisplayTicketCode</td>
+                            <td>@item.DestroyDate.ToString("dd/MM/yyyy")</td>
+                            <td>@item.PerformedBy</td>
+                            <td class="text-end">@item.TotalItems</td>
+                            <td class="text-end">@item.TotalQuantity</td>
+                            <td>
+                                <span class="badge bg-danger bg-opacity-10 text-danger border border-danger border-opacity-25">
+                                    @item.MainReason
+                                </span>
+                            </td>
+                            <td class="text-center">
+                                <button class="btn btn-sm btn-light text-primary"><i class="fas fa-eye"></i></button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="7" class="text-center text-muted py-4">Chưa có lịch sử hủy hàng nào.</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="modal fade" id="destroyTicketModal" tabindex="-1" aria-labelledby="destroyTicketModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-xl modal-dialog-centered">
+        <form id="form-destroy-product" asp-controller="DestroyProduct" asp-action="Create" method="post">
+            @Html.AntiForgeryToken()
+
+            <div class="modal-content border-danger">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title fw-bold" id="destroyTicketModalLabel"><i class="fas fa-exclamation-triangle me-2"></i>Lập Phiếu Hủy Hàng</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                
+                <div class="modal-body p-4">
+                    <div class="alert alert-warning py-2 mb-4">
+                        <i class="fas fa-info-circle me-2"></i><strong>Lưu ý:</strong> Hàng hóa sau khi xác nhận hủy sẽ bị trừ khỏi kho và không thể hoàn tác.
+                    </div>
+
+                    <div class="row g-3 mb-4">
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Mã phiếu hủy</label>
+                            <input type="text" class="form-control bg-light" value="TỰ-ĐỘNG" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Ngày thực hiện <span class="text-danger">*</span></label>
+                            <input type="date" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" readonly>
+                        </div>
+                        <div class="col-md-4">
+                            <label class="form-label fw-medium">Người lập phiếu</label>
+                            <input type="text" name="TenNguoiTao" class="form-control bg-light" value="Khoa" readonly>
+                        </div>
+                    </div>
+
+                    <div class="d-flex justify-content-between align-items-center border-bottom pb-2 mb-3">
+                        <h6 class="text-danger mb-0"><i class="fas fa-list-ul me-2"></i>Danh sách thực phẩm cần hủy</h6>
+                        <button type="button" class="btn btn-sm btn-outline-danger" id="btn-add-row"><i class="fas fa-plus me-1"></i> Thêm dòng</button>
+                    </div>
+    
+                    <div class="table-responsive">
+                        <table class="table table-bordered table-detail" id="table-destruction-details">
+                            <thead class="table-light">
+                                <tr>
+                                    <th style="width: 40%;">Lô hàng & Thực phẩm</th>
+                                    <th style="width: 20%;">Số lượng hủy</th>
+                                    <th style="width: 35%;">Lý do chi tiết <span class="text-danger">*</span></th>
+                                    <th style="width: 5%;" class="text-center"><i class="fas fa-cog"></i></th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr class="detail-row">
+                                    <td>
+                                        <select name="Details[0].MaLo" class="form-select border-danger select-lo-hang" required>
+                                            <option value="">-- Chọn lô hàng cần hủy --</option>
+                                            @if (ViewBag.AvailableBatches != null)
+                                            {
+                                                foreach (var batch in ViewBag.AvailableBatches)
+                                                {
+                                                    <option value="@batch.MaLo">
+                                                        @batch.MaThucPhamNavigation?.TenThucPham - Lô #@batch.MaLo (HSD: @batch.HanSuDung.ToString("dd/MM/yyyy") | Tồn: @batch.SoLuong)
+                                                    </option>
+                                                }
+                                            }
+                                        </select>
+                                    </td>
+                                    <td>
+                                        <div class="input-group">
+                                            <input type="number" class="form-control text-end border-danger input-so-luong" name="Details[0].SoLuong" value="1" required>
+                                            <span class="input-group-text bg-light text-muted">Kg/Gói</span>
+                                        </div>
+                                    </td>
+                                    <td>
+                                        <select name="Details[0].LyDo" class="form-select border-danger select-ly-do" required>
+                                            <option value="">-- Chọn lý do hủy --</option>
+                                            <option value="Hết hạn sử dụng">Hết hạn sử dụng</option>
+                                            <option value="Hư hỏng/Mốc">Hư hỏng/Mốc</option>
+                                            <option value="Không đạt chất lượng">Không đạt chất lượng</option>
+                                        </select>
+                                    </td>
+                                    <td class="text-center">
+                                        <button type="button" class="btn btn-sm btn-outline-secondary btn-delete-row" disabled><i class="fas fa-trash"></i></button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <div class="modal-footer bg-light">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Hủy bỏ</button>
+                    <button type="submit" class="btn btn-danger fw-bold"><i class="fas fa-trash-alt me-2"></i>Xác nhận Hủy hàng</button>
+                </div>
+            </div>
+        </form> 
+    </div>
+</div>
+
+<script>
+    // Chỉ giữ lại script tăng chỉ số mảng dòng khi bấm nút "Thêm dòng" / "Xóa dòng"
+    function reIndexRows() {
+        const rows = document.querySelectorAll('#table-destruction-details tbody tr');
+        rows.forEach((row, index) => {
+            const selectLoHang = row.querySelector('.select-lo-hang');
+            const inputSoLuong = row.querySelector('.input-so-luong');
+            const selectLyDo = row.querySelector('.select-ly-do');
+            
+            if (selectLoHang) selectLoHang.name = `Details[${index}].MaLo`;
+            if (inputSoLuong) inputSoLuong.name = `Details[${index}].SoLuong`;
+            if (selectLyDo) selectLyDo.name = `Details[${index}].LyDo`;
+
+            const deleteBtn = row.querySelector('.btn-delete-row');
+            if (deleteBtn) {
+                deleteBtn.disabled = (index === 0);
+            }
+        });
+    }
+
+    document.getElementById('btn-add-row').addEventListener('click', function() {
+        const tbody = document.querySelector('#table-destruction-details tbody');
+        const firstRow = tbody.querySelector('tr');
+        const newRow = firstRow.cloneNode(true);
+        
+        newRow.querySelector('.select-lo-hang').value = "";
+        newRow.querySelector('.select-ly-do').value = "";
+        newRow.querySelector('.input-so-luong').value = "1";
+
+        tbody.appendChild(newRow);
+        reIndexRows();
+    });
+
+    document.addEventListener('click', function(e) {
+        if (e.target && (e.target.classList.contains('btn-delete-row') || e.target.closest('.btn-delete-row'))) {
+            const btn = e.target.classList.contains('btn-delete-row') ? e.target : e.target.closest('.btn-delete-row');
+            const row = btn.closest('tr');
+            const tbody = document.querySelector('#table-destruction-details tbody');
+            
+            if (tbody.querySelectorAll('tr').length > 1) {
+                row.remove();
+                reIndexRows();
+            }
+        }
+    });
+</script>
