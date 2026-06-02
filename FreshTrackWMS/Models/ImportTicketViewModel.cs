@@ -13,6 +13,8 @@ namespace FreshTrackWMS.ViewModels
         public int MaNhaCungCap { get; set; }
 
         public string? GhiChu { get; set; }
+        [Required]
+        public string NguoiTao { get; set; }
 
         // Danh sách các mặt hàng nhập kho
         public List<ImportTicketDetailVM> Details { get; set; } = new List<ImportTicketDetailVM>();

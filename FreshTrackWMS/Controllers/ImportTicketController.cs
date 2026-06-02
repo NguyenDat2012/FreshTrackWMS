@@ -54,12 +54,25 @@ namespace FreshTrackWMS.Controllers
                 using var transaction = await _context.Database.BeginTransactionAsync();
                 try
                 {
+                    // Tìm và bốc duy nhất cột ID (MaNguoiDung) dưới Database lên
+                    int maNguoiTao = await _context.NguoiDungs
+                        .Where(u => u.TenTaiKhoan == model.NguoiTao.Trim())
+                        .Select(u => u.MaNguoiDung) // Chỉ lấy đúng cột ID
+                        .FirstOrDefaultAsync();    // Nếu không tìm thấy, mặc định trả về số 0
+
+                    if (maNguoiTao <= 0)
+                    {
+
+                        TempData["Error"] = $"Không tìm thấy nhân viên nào có tên '{model.NguoiTao}' trong hệ thống.";
+                        return RedirectToAction(nameof(Index));
+                    }
+                   
                     // 1. Tạo Phiếu nhập
                     var phieuNhap = new PhieuNhap
                     {
                         NgayNhap = model.NgayNhap,
                         MaNhaCungCap = model.MaNhaCungCap,
-                        NguoiTao = 2,
+                        NguoiTao = maNguoiTao,
                         GhiChu = model.GhiChu
                     };
                     _context.PhieuNhaps.Add(phieuNhap);

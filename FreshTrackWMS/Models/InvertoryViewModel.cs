@@ -3,25 +3,23 @@ using System.Collections.Generic;
 
 namespace FreshTrackWMS.Models
 {
-    public class InventoryItem
-    {
-        public string ItemCode { get; set; }      // Sẽ nhận giá trị MaThucPham.ToString()
-        public string ItemName { get; set; }      // Nhận TenThucPham
-        public string Category { get; set; }      // Nhận DanhMuc
-        public double TotalStock { get; set; }    // Tính tổng số lượng từ các LoHangs
-        public string Unit { get; set; }          // Nhận DonViTinh
-        public int StatusType { get; set; }       // Trạng thái tính toán dựa trên HSD của các lô
-        public List<BatchItem> Batches { get; set; } = new List<BatchItem>();
-    }
-
     public class BatchItem
     {
-        public string BatchId { get; set; }       // Mã lô hàng
-        public DateTime ImportDate { get; set; }  // Ngày nhập
-        public string ImportCode { get; set; }    // Mã phiếu nhập
-        public double BatchStock { get; set; }    // Số lượng tồn lô
-        public DateTime ExpiryDate { get; set; }  // Hạn sử dụng
-        public string Status { get; set; }        // Trạng thái lô
+        public string BatchId { get; set; }      // Mã lô (MaLo)
+        public DateTime ImportDate { get; set; }  // Ngày nhập (NgayNhap)
+        public double BatchStock { get; set; }    // Số lượng của lô này (SoLuong)
+        public DateTime ExpiryDate { get; set; }  // Hạn sử dụng (HanSuDung)
+    }
+
+    public class InventoryItem
+    {
+        public string ItemCode { get; set; }      // Định dạng kiểu TP001
+        public string ItemName { get; set; }
+        public string Category { get; set; }
+        public string Unit { get; set; }
+        public double TotalStock { get; set; }    // TỔNG SỐ LƯỢNG TỒN GOM TỪ CÁC LÔ
+        public int StatusType { get; set; }       // 0: Bình thường, 1: Sắp hết hạn, 2: Sắp hết hàng
+        public List<BatchItem> Batches { get; set; }
     }
 
     public class InventoryPageViewModel

@@ -133,7 +133,7 @@
                             <label class="form-label fw-medium">Ngày nhập <span class="text-danger">*</span></label>
                             <input type="date" name="NgayNhap" class="form-control" value="@DateTime.Now.ToString("yyyy-MM-dd")" required>
                         </div>
-                        <div class="col-md-6">
+                        <div class="col-md-3">
                             <label class="form-label fw-medium">Nhà cung cấp <span class="text-danger">*</span></label>
                             <select name="MaNhaCungCap" class="form-select" required>
                                 <option value="" selected disabled>-- Chọn nhà cung cấp --</option>
@@ -145,6 +145,10 @@
                                     }
                                 }
                             </select>
+                        </div>
+                        <div class="col-md-3">
+                            <label class="form-label fw-medium">Người Tạo <span class="text-danger">*</span></label>
+                            <input type="text" name="NguoiTao" class="form-control" value="Khoa" readonly required>
                         </div>
                         <div class="col-12">
                             <label class="form-label fw-medium">Ghi chú</label>
