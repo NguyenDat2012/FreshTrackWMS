@@ -78,7 +78,7 @@ namespace FreshTrackWMS.Controllers
 
                 return new InventoryItem
                 {
-                    ItemCode = "TP" + t.MaThucPham.ToString("D3"), // Định dạng chuẩn: TP001, TP002...
+                    ItemCode = t.MaThucPham.ToString(), 
                     ItemName = t.TenThucPham,
                     Category = t.DanhMuc ?? "Chưa phân loại",
                     Unit = t.DonViTinh ?? "Kg",

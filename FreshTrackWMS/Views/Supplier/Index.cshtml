@@ -44,7 +44,7 @@
                     foreach (var item in Model.Suppliers)
                     {
                         <tr>
-                            <td class="fw-medium">NCC-@item.MaNhaCungCap</td>
+                            <td class="fw-medium">@item.MaNhaCungCap</td>
                             <td class="fw-bold text-dark">@item.TenNhaCungCap</td>
                             <td>
                                 <div><i class="fas fa-phone-alt text-muted me-2" style="width: 15px;"></i> @(item.SoDienThoai ?? "Chưa có")</div>

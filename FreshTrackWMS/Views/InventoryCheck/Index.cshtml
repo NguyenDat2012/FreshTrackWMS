@@ -98,7 +98,7 @@
                         var lechSoLuong = ticket.ChiTietKiemKes.Count(c => c.TonHeThong != c.ThucTeDem);
 
                         <tr>
-                            <td class="fw-medium text-info">PKK-@ticket.NgayKiemKe.ToString("yyMMdd")-@ticket.MaPhieuKiemKe.ToString("D2")</td>
+                            <td class="fw-medium text-info">@ticket.MaPhieuKiemKe.ToString()</td>
                             <td>@ticket.NgayKiemKe.ToString("dd/MM/yyyy")</td>
                             <td>@(ticket.NguoiTaoNavigation?.TenTaiKhoan ?? "Thủ kho")</td>
                             <td class="text-center">@matHangKiem</td>
@@ -134,7 +134,7 @@
                     <div class="row g-3 mb-4">
                         <div class="col-md-4">
                             <label class="form-label fw-medium">Mã phiếu kiểm kê</label>
-                            <input type="text" class="form-control bg-light" value="PKK-TỰ-ĐỘNG" readonly>
+                            <input type="text" class="form-control bg-light" value="TỰ-ĐỘNG" readonly>
                         </div>
                         <div class="col-md-4">
                             <label class="form-label fw-medium">Ngày thực hiện <span class="text-danger">*</span></label>
@@ -190,7 +190,7 @@
         function createRowHtml() {
             let optionsHtml = '<option value="" selected disabled data-sys="0">-- Chọn Lô hàng kiểm kê --</option>';
             lotList.forEach(lot => {
-                optionsHtml += `<option value="${lot.MaLo}" data-sys="${lot.TonKho}">Lô ${String(lot.MaLo).padStart(3, '0')} - ${lot.TenThucPham}</option>`;
+                optionsHtml += `<option value="${lot.MaLo}" data-sys="${lot.Tonkho}">Lô ${String(lot.MaLo).padStart(3, '0')} - ${lot.TenThucPham}</option>`;
             });
 
             const tr = document.createElement('tr');

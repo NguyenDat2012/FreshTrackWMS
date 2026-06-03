@@ -75,7 +75,7 @@
                     @foreach (var item in Model)
                     {
                         <tr>
-                            <td class="fw-medium">TP@(item.MaThucPham.ToString("D3"))</td>
+                            <td class="fw-medium">@(item.MaThucPham.ToString())</td>
                             <td>@item.TenThucPham</td>
                             <td>
                                 @if (item.DanhMuc == "Rau củ")

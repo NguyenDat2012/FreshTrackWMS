@@ -1,0 +1,199 @@
+﻿@model FreshTrackWMS.ViewModels.ReportInventoryVM
+
+<style>
+    .table-report th { font-size: 0.85rem; text-transform: uppercase; color: #555; background-color: #f8f9fa; }
+    .table-report td { vertical-align: middle; }
+    .val-in { color: #198754; font-weight: 500; }
+    .val-out { color: #dc3545; font-weight: 500; }
+    .val-stock { color: #0d6efd; font-weight: bold; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
+    <h4 class="mb-0"><i class="fas fa-chart-pie text-primary me-2"></i>Báo cáo Nhập - Xuất - Tồn</h4>
+    </div>
+
+<div class="card p-3 border-0 shadow-sm mb-4">
+    <h6 class="mb-3 text-muted">Tham số lọc và xuất báo cáo</h6>
+    <form method="get" asp-controller="Report" asp-action="InventoryReport" id="reportForm">
+        <div class="row g-3">
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Từ ngày</label>
+                <input type="date" name="fromDate" class="form-control" value="@Model.FromDate.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Đến ngày</label>
+                <input type="date" name="toDate" class="form-control" value="@Model.ToDate.ToString("yyyy-MM-dd")">
+            </div>
+            <div class="col-md-3">
+                <label class="form-label small text-muted mb-1">Nhóm sản phẩm</label>
+                <select name="selectedCategory" class="form-select">
+                    <option value="">Tất cả danh mục</option>
+                    @foreach (var cat in Model.Categories)
+                    {
+                        <!option value="@cat" @(Model.SelectedCategory == cat ? "selected" : "")>@cat</!option>
+                    }
+                </select>
+            </div>
+            <div class="col-md-3 d-flex align-items-end">
+                <button type="button" id="btn-submit-pdf" class="btn btn-danger w-100 fw-medium">
+                    <i class="fas fa-file-pdf me-2"></i>Xuất File PDF
+                </button>
+            </div>
+        </div>
+    </form>
+</div>
+
+<div id="pdf-content" class="bg-white p-2 rounded">
+    
+    <div class="d-none d-print-block text-center mb-4 pt-2">
+        <h3 class="fw-bold text-uppercase text-dark">Báo Cáo Nhập - Xuất - Tồn Kho</h3>
+        <p class="text-muted small">Kỳ báo cáo: Từ @Model.FromDate.ToString("dd/MM/yyyy") đến @Model.ToDate.ToString("dd/MM/yyyy")</p>
+        @if(!string.IsNullOrEmpty(Model.SelectedCategory))
+        {
+            <p class="badge bg-secondary">Danh mục: @Model.SelectedCategory</p>
+        }
+        <hr>
+    </div>
+
+    <div class="row g-3 mb-4 row-cols-1 row-cols-md-3">
+        <div class="col">
+            <div class="card p-3 border-0 shadow-sm bg-success bg-opacity-10 rounded h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-success mb-1 fw-medium">Tổng Nhập Kho</h6>
+                        <h3 class="mb-0 fw-bold text-success">@Model.TotalImport.ToString("N0") <small class="fs-6 fw-normal text-muted">Kg</small></h3>
+                    </div>
+                    <div class="fs-1 text-success opacity-50"><i class="fas fa-arrow-circle-down"></i></div>
+                </div>
+            </div>
+        </div>
+        
+        <div class="col">
+            <div class="card p-3 border-0 shadow-sm bg-danger bg-opacity-10 rounded h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-danger mb-1 fw-medium">Tổng Xuất Kho</h6>
+                        <h3 class="mb-0 fw-bold text-danger">@Model.TotalExport.ToString("N0") <small class="fs-6 fw-normal text-muted">Kg</small></h3>
+                    </div>
+                    <div class="fs-1 text-danger opacity-50"><i class="fas fa-arrow-circle-up"></i></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="col">
+            <div class="card p-3 border-0 shadow-sm bg-primary bg-opacity-10 rounded h-100">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <h6 class="text-primary mb-1 fw-medium">Chênh lệch trong kỳ</h6>
+                        <h3 class="mb-0 fw-bold text-primary">
+                            @(Model.TotalDifference >= 0 ? "+" : "")@Model.TotalDifference.ToString("N0") <small class="fs-6 fw-normal text-muted">Kg</small>
+                        </h3>
+                    </div>
+                    <div class="fs-1 text-primary opacity-50"><i class="fas fa-balance-scale"></i></div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-0 border-0 shadow-sm">
+        <div class="card-header bg-white py-3 d-flex justify-content-between align-items-center border-bottom-0 d-print-none">
+            <h6 class="mb-0 fw-bold text-secondary">Bảng kê chi tiết Nhập - Xuất - Tồn</h6>
+            <div class="input-group" style="width: 250px;">
+                <input type="text" id="tableSearch" class="form-control form-control-sm" placeholder="Tìm nhanh trong báo cáo...">
+            </div>
+        </div>
+        <div class="table-responsive">
+            <table class="table table-hover table-report align-middle mb-0" id="reportTable">
+                <thead>
+                    <tr>
+                        <th style="width: 10%;">Mã TP</th>
+                        <th style="width: 25%;">Tên thực phẩm</th>
+                        <th style="width: 10%;">ĐVT</th>
+                        <th class="text-end" style="width: 13%;">Tồn đầu kỳ</th>
+                        <th class="text-end" style="width: 13%;">Nhập trong kỳ</th>
+                        <th class="text-end" style="width: 13%;">Xuất trong kỳ</th>
+                        <th class="text-end" style="width: 16%;">Tồn cuối kỳ</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model.Details != null && Model.Details.Any())
+                    {
+                        foreach (var item in Model.Details)
+                        {
+                            <tr>
+                                <td class="fw-medium">@item.FoodCode</td>
+                                <td class="food-name">@item.FoodName</td>
+                                <td>@item.Unit</td>
+                                <td class="text-end text-muted">@item.BeginningQty.ToString("N0")</td>
+                                <td class="text-end val-in">+ @item.InQty.ToString("N0")</td>
+                                <td class="text-end val-out">- @item.OutQty.ToString("N0")</td>
+                                <td class="text-end val-stock @(item.EndingQty <= 5 ? "text-danger" : "")">
+                                    @item.EndingQty.ToString("N0")
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">Không tìm thấy số liệu báo cáo phù hợp.</td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot class="table-light fw-bold">
+                    <tr>
+                        <td colspan="3" class="text-end">TỔNG CỘNG</td>
+                        <td class="text-end">@Model.Details?.Sum(d => d.BeginningQty).ToString("N0")</td>
+                        <td class="text-end text-success">+ @Model.TotalImport.ToString("N0")</td>
+                        <td class="text-end text-danger">- @Model.TotalExport.ToString("N0")</td>
+                        <td class="text-end text-primary">@Model.Details?.Sum(d => d.EndingQty).ToString("N0")</td>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
+
+@section Scripts {
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+
+    <script>
+        document.addEventListener("DOMContentLoaded", function () {
+            
+            // Xử lý khi nhấn nút "Xuất File PDF" ở ô lọc dữ liệu
+            document.getElementById('btn-submit-pdf').addEventListener('click', function () {
+                const element = document.getElementById('pdf-content');
+
+                // 1. Hiện tiêu đề in ẩn lên trước khi chụp ảnh xuất file
+                const printHeader = element.querySelector('.d-print-block');
+                if (printHeader) printHeader.classList.remove('d-none');
+
+                // 2. Cấu hình xuất file PDF bản rộng (ngang khổ A4) để không móp bảng chi tiết
+                const options = {
+                    margin:       [10, 12, 10, 12],
+                    filename:     `BaoCao_NXT_${new Date().toISOString().slice(0,10)}.pdf`,
+                    image:        { type: 'jpeg', quality: 0.98 },
+                    html2canvas:  { scale: 2, useCORS: true },
+                    jsPDF:        { unit: 'mm', format: 'a4', orientation: 'landscape' }
+                };
+
+                // 3. Thực hiện render và tự động tải về máy
+                html2pdf().set(options).from(element).save().then(() => {
+                    // 4. Trả lại trạng thái ẩn tiêu đề trên giao diện web sau khi xuất xong
+                    if (printHeader) printHeader.classList.add('d-none');
+                });
+            });
+
+            // Tìm kiếm nhanh trong bảng dữ liệu
+            document.getElementById('tableSearch').addEventListener('keyup', function() {
+                let searchValue = this.value.toLowerCase();
+                let rows = document.querySelectorAll('#reportTable tbody tr');
+                
+                rows.forEach(row => {
+                    let text = row.querySelector('.food-name')?.textContent.toLowerCase() || '';
+                    row.style.display = text.includes(searchValue) ? '' : 'none';
+                });
+            });
+        });
+    </script>
+}
