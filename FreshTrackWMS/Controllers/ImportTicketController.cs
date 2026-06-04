@@ -63,7 +63,7 @@ namespace FreshTrackWMS.Controllers
                     if (maNguoiTao <= 0)
                     {
 
-                        TempData["Error"] = $"Không tìm thấy nhân viên nào có tên '{model.NguoiTao}' trong hệ thống.";
+                        TempData["ErrorMessage"] = $"Không tìm thấy nhân viên nào có tên '{model.NguoiTao}' trong hệ thống.";
                         return RedirectToAction(nameof(Index));
                     }
                    

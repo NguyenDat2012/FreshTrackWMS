@@ -1,8 +1,209 @@
-﻿@{
-    ViewData["Title"] = "Home Page";
+﻿@model FreshTrackWMS.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Bảng Điều Khiển";
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+<style>
+    /* CSS làm hiệu ứng bấm được cho các thẻ tổng quan */
+    .card-clickable {
+        cursor: pointer;
+        transition: transform 0.2s, box-shadow 0.2s;
+    }
+
+        .card-clickable:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 .5rem 1rem rgba(0,0,0,.15) !important;
+        }
+</style>
+
+<div class="content-padding">
+    <h4 class="mb-4">Tổng quan kho</h4>
+
+    <div class="row g-3 mb-4">
+        <div class="col-6 col-lg-3">
+            <div class="card card-stat p-3 h-100 card-clickable shadow-sm" onclick="showDashboardDetail('lowstock')">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Sắp hết hàng</div>
+                        <div class="fs-4 fw-bold text-danger">@Model.SapHetHangCount</div>
+                        <div class="small text-muted">sản phẩm</div>
+                    </div>
+                    <i class="fas fa-boxes text-danger opacity-50 icon fs-1"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="card card-stat p-3 h-100 border-start border-warning border-4 card-clickable shadow-sm" onclick="showDashboardDetail('expiring')">
+                <div class="d-flex justify-content-between align-items-start">
+                    <div>
+                        <div class="text-muted small">Sắp hết hạn</div>
+                        <div class="fs-4 fw-bold text-warning">@Model.SapHetHanCount</div>
+                        <div class="small text-muted mb-2">lô hàng</div>
+                        <button class="btn btn-sm btn-outline-warning" onclick="event.stopPropagation(); alert('Mốt code trang xuất hủy thì gắn link vào đây sau!');">Tạo phiếu xuất</button>
+                    </div>
+                    <i class="fas fa-clock text-warning opacity-50 icon fs-1"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="card card-stat p-3 h-100 card-clickable shadow-sm" onclick="showDashboardDetail('todayimports')">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Phiếu nhập hôm nay</div>
+                        <div class="fs-4 fw-bold text-info">@Model.PhieuNhapHomNayCount</div>
+                        <div class="small text-muted">phiếu</div>
+                    </div>
+                    <i class="fas fa-file-import text-info opacity-50 icon fs-1"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-6 col-lg-3">
+            <div class="card card-stat p-3 h-100 card-clickable shadow-sm" onclick="showDashboardDetail('inventory')">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <div class="text-muted small">Tổng tồn kho</div>
+                        <div class="fs-4 fw-bold text-success">@Model.TongTonKho.ToString("N0")</div>
+                        <div class="small text-muted">đơn vị (Kg/Hộp...)</div>
+                    </div>
+                    <i class="fas fa-weight-hanging text-success opacity-50 icon fs-1"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <div class="card p-4 border-0 shadow-sm">
+        <h5 class="mb-3">Phiếu nhập gần đây</h5>
+        <div class="table-responsive">
+            <table class="table table-hover table-sm align-middle mb-0">
+                <thead class="table-light">
+                    <tr>
+                        <th>Mã phiếu</th>
+                        <th>Ngày</th>
+                        <th>Nhà cung cấp</th>
+                        <th class="text-center">Số mặt hàng</th>
+                        <th class="text-center">Trạng thái</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (!Model.PhieuNhapGanDay.Any())
+                    {
+                        <tr>
+                            <td colspan="5" class="text-center text-muted py-3">Chưa có dữ liệu phiếu nhập nào.</td>
+                        </tr>
+                    }
+                    @foreach (var ticket in Model.PhieuNhapGanDay)
+                    {
+                        <tr>
+                            <td class="fw-medium text-primary">PN-@ticket.NgayNhap.ToString("yyMMdd")-@ticket.MaPhieuNhap.ToString("D2")</td>
+                            <td>@ticket.NgayNhap.ToString("dd/MM/yyyy")</td>
+                            <td>@ticket.TenNhaCungCap</td>
+                            <td class="text-center">@ticket.SoMatHang</td>
+                            <td class="text-center"><span class="badge bg-success">Đã nhập</span></td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 </div>
+
+<div class="modal fade" id="dashboardDetailModal" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog modal-lg modal-dialog-centered modal-dialog-scrollable">
+        <div class="modal-content">
+            <div class="modal-header bg-dark text-white">
+                <h5 class="modal-title fw-bold" id="dashModalTitle">Danh sách chi tiết</h5>
+                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body p-0">
+                <table class="table table-hover align-middle mb-0">
+                    <thead class="table-light" id="dashModalHead">
+                    </thead>
+                    <tbody id="dashModalBody">
+                    </tbody>
+                </table>
+            </div>
+            <div class="modal-footer bg-light">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Đóng</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // Hàm xử lý khi bấm vào thẻ
+    function showDashboardDetail(type) {
+        let url = '';
+        let title = '';
+        let theadHtml = '';
+
+        // Setup cấu hình UI tùy theo thẻ được bấm
+        if (type === 'lowstock') {
+            url = '/Home/GetLowStockDetails';
+            title = '<i class="fas fa-exclamation-triangle text-danger me-2"></i>Sản phẩm sắp hết hàng (Tồn < 10)';
+            theadHtml = '<tr><th>Mã TP</th><th>Tên thực phẩm</th><th class="text-end">Tồn kho hiện tại</th></tr>';
+        }
+        else if (type === 'expiring') {
+            url = '/Home/GetExpiringDetails';
+            title = '<i class="fas fa-clock text-warning me-2"></i>Lô hàng sắp hết hạn (Trong 7 ngày tới)';
+            theadHtml = '<tr><th>Lô hàng</th><th>Tên thực phẩm</th><th>Hạn sử dụng</th><th class="text-end">Tồn kho</th></tr>';
+        }
+        else if (type === 'todayimports') {
+            url = '/Home/GetTodayImportDetails';
+            title = '<i class="fas fa-file-import text-info me-2"></i>Phiếu nhập trong ngày hôm nay';
+            theadHtml = '<tr><th>Mã phiếu</th><th>Nhà cung cấp</th><th class="text-end">Số loại mặt hàng</th></tr>';
+        }
+        else if (type === 'inventory') {
+            url = '/Home/GetInventoryDetails';
+            title = '<i class="fas fa-boxes text-success me-2"></i>Chi tiết tổng tồn kho hệ thống';
+            theadHtml = '<tr><th>Mã TP</th><th>Tên thực phẩm</th><th class="text-end">Tổng tồn kho</th></tr>';
+        }
+
+        // Cập nhật giao diện Modal
+        document.getElementById('dashModalTitle').innerHTML = title;
+        document.getElementById('dashModalHead').innerHTML = theadHtml;
+        const tbody = document.getElementById('dashModalBody');
+        tbody.innerHTML = '<tr><td colspan="4" class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><div class="mt-2 text-muted">Đang lấy dữ liệu...</div></td></tr>';
+
+        // Mở Modal lên ngay lập tức để người dùng thấy nó đang load
+        const modal = new bootstrap.Modal(document.getElementById('dashboardDetailModal'));
+        modal.show();
+
+        // Gọi API lấy dữ liệu
+        fetch(url)
+            .then(res => res.json())
+            .then(data => {
+                tbody.innerHTML = ''; // Xóa chữ Đang tải...
+
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" class="text-center text-muted py-4">Không có dữ liệu nào.</td></tr>';
+                    return;
+                }
+
+                // Duyệt mảng data để tạo các dòng <tr>
+                data.forEach(item => {
+                    let tr = '<tr>';
+                    if (type === 'lowstock') {
+                        tr += `<td>${item.ma}</td><td>${item.ten}</td><td class="text-end text-danger fw-bold">${item.ton}</td>`;
+                    }
+                    else if (type === 'expiring') {
+                        tr += `<td><span class="badge bg-secondary">${item.maLo}</span></td><td>${item.ten}</td><td class="text-danger fw-medium">${item.hsd}</td><td class="text-end">${item.sl}</td>`;
+                    }
+                    else if (type === 'todayimports') {
+                        tr += `<td><span class="text-primary fw-medium">${item.maPhieu}</span></td><td>${item.ncc}</td><td class="text-end">${item.slMatHang}</td>`;
+                    }
+                    else if (type === 'inventory') {
+                        tr += `<td>${item.ma}</td><td>${item.ten}</td><td class="text-end fw-bold text-success">${item.ton}</td>`;
+                    }
+                    tr += '</tr>';
+                    tbody.innerHTML += tr;
+                });
+            })
+            .catch(err => {
+                tbody.innerHTML = '<tr><td colspan="4" class="text-center text-danger py-4">Có lỗi xảy ra khi lấy dữ liệu!</td></tr>';
+                console.error(err);
+            });
+    }
+</script>>
