@@ -97,7 +97,7 @@
                     @foreach (var ticket in Model.PhieuNhapGanDay)
                     {
                         <tr>
-                            <td class="fw-medium text-primary">PN-@ticket.NgayNhap.ToString("yyMMdd")-@ticket.MaPhieuNhap.ToString("D2")</td>
+                            <td class="fw-medium text-primary">@ticket.MaPhieuNhap.ToString()</td>
                             <td>@ticket.NgayNhap.ToString("dd/MM/yyyy")</td>
                             <td>@ticket.TenNhaCungCap</td>
                             <td class="text-center">@ticket.SoMatHang</td>
@@ -206,4 +206,4 @@
                 console.error(err);
             });
     }
-</script>>
+</script>
